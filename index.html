@@ -11,15 +11,17 @@ html, body {
   background: transparent;
   font-family: Georgia, serif;
   color: #e6dcc8;
+  overflow: hidden;
 }
 
 .wrapper {
   position: relative;
   width: 420px;
-  max-height: 900px;
+  height: 560px;
   padding: 18px;
   box-sizing: border-box;
   overflow: hidden;
+  padding: 20px;
 
   background: linear-gradient(
     rgba(0, 0, 0, 0.75),
@@ -39,7 +41,7 @@ html, body {
 .wrapper::before {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 1px;
   border-radius: 14px;
   pointer-events: none;
 
@@ -52,10 +54,11 @@ html, body {
 .wrapper::after {
   content: "";
   position: absolute;
-  inset: 0;
+  inset: 1px;
   border-radius: 14px;
   pointer-events: none;
   border: 2px solid #c9a44a;
+  box-sizing: border-box;
 }
 
 .scroll {
@@ -368,5 +371,3 @@ setInterval(() => {
 </script>
 </body>
 </html>
-
-

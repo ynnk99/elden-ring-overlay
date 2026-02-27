@@ -400,7 +400,7 @@ async function loadData() {
 
   const globalDeaths = Number(rows[1]?.c[9]?.v) || 0;
 
-  rows.slice(1).forEach(r => {
+  rows.slice(2).forEach(r => {
   const area = r.c[0]?.v?.trim();
   const boss = r.c[1]?.v?.trim();
   if (!area || !boss) return; // nur echte Bosszeilen
@@ -640,3 +640,4 @@ setInterval(() => {
 </script>
 </body>
 </html>
+

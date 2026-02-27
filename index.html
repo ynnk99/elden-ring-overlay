@@ -418,7 +418,12 @@ async function loadData() {
 
   const area = r.c[0]?.v?.trim();
   const boss = r.c[1]?.v?.trim();
-  if (!area || !boss) return; // nur echte Bosszeilen
+  
+  // Header ignorieren
+  if (area === "Gebiet" && boss === "Boss") return;
+  
+  // Leere Zeilen ignorieren
+  if (!area || !boss) return;
 
     // ✅ Done prüfen (TRUE/WAHR/1)
     const rawDone = r.c[2]?.v;
@@ -655,3 +660,4 @@ setInterval(() => {
 </script>
 </body>
 </html>
+

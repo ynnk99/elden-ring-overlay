@@ -350,15 +350,11 @@ async function loadData() {
   const json = JSON.parse(text.substring(47).slice(0, -2));
   const rows = json.table.rows;
 
-  // ✅ HIER EINSETZEN
   const isTrue = v => [true, "TRUE", "WAHR", 1].includes(v);
-  
-  // P1 und P2 (Spalte P = Index 15)
-  const baseGameFlag = isTrue(rows[0]?.c[15]?.v); // P1
-  const dlcFlag      = isTrue(rows[1]?.c[15]?.v); // P2
 
-  // ✅ Define isTrue FIRST before anything uses it
-  const isTrue = v => [true, "TRUE", "WAHR", 1].includes(v);
+  // K4 und K5 sitzen in Zeile 4 und 5 → Index 3 und 4
+  const baseGameFlag = isTrue(rows[3]?.c[10]?.v); // K4
+  const dlcFlag      = isTrue(rows[4]?.c[10]?.v); // K5
 
   const timerStartFlag   = rows[0]?.c[10]?.v;
   const timerResetFlag   = rows[1]?.c[10]?.v;
@@ -409,83 +405,76 @@ async function loadData() {
 
   rows.forEach((r, index) => {
 
-  const sheetRow = index + 1;
+  const sheetRow = index + 1; // echte Tabellen-Zeilennummer
+
+  // === BASE GAME FILTER (bis Zeile 168) ===
+  if (sheetRow <= 168 && !baseGameFlag) return;
+
+  // === DLC FILTER (Zeile 170–211) ===
+  if (sheetRow >= 170 && sheetRow <= 211 && !dlcFlag) return;
+
+  // Zeile 169 ist deine Trennzeile → ignorieren
+  if (sheetRow === 169) return;
 
   const area = r.c[0]?.v?.trim();
   const boss = r.c[1]?.v?.trim();
+  if (!area || !boss) return; // nur echte Bosszeilen
 
-  // ✅ 1. Header blockieren
-  if (area === "Gebiet" && boss === "Boss") return;
+    // ✅ Done prüfen (TRUE/WAHR/1)
+    const rawDone = r.c[2]?.v;
+    const done = [true, "TRUE", "WAHR", 1].includes(rawDone);
 
-  // ✅ 2. Leere Zeilen blockieren
-  if (!area || !boss) return;
+    // ✅ Angepinnt prüfen (Spalte E = 4)
+    const rawPinned = r.c[4]?.v;
+    const pinned = [true, "TRUE", "WAHR", 1].includes(rawPinned);
 
-  // ✅ 3. Trennzeile blockieren
-  if (sheetRow === 170) return;
+    const deaths = Number(r.c[3]?.v) || 0;
+    const key = area + "|" + boss;
 
-  // ======================
-  // ✅ BASE / DLC FILTER
-  // ======================
+    if (!(key in previousBossStates)) {
+      previousBossStates[key] = done;
+    } else if (!previousBossStates[key] && done) {
 
-  const isBaseGame = sheetRow >= 2 && sheetRow <= 169;
-  const isDLC      = sheetRow >= 171 && sheetRow <= 211;
+      // Prüfen, ob Main Boss
+      if (MAIN_BOSSES.includes(boss)) {
+        // Warten bis DOM neu gerendert wurde
+        setTimeout(() => {
+          const bossElements = document.querySelectorAll(".boss");
+          bossElements.forEach(el => {
+            if (el.querySelector(".boss-name")?.innerText === boss) {
+              triggerVictory(el);
+            }
+          });
+        }, 100);
+      }
 
-  // Wenn Base Game Boss aber Base nicht aktiviert → skip
-  if (isBaseGame && !baseGameFlag) return;
-
-  // Wenn DLC Boss aber DLC nicht aktiviert → skip
-  if (isDLC && !dlcFlag) return;
-
-  // ======================
-
-  const rawDone   = r.c[2]?.v;
-  const done      = [true, "TRUE", "WAHR", 1].includes(rawDone);
-
-  const rawPinned = r.c[4]?.v;
-  const pinned    = [true, "TRUE", "WAHR", 1].includes(rawPinned);
-
-  const deaths = Number(r.c[3]?.v) || 0;
-
-  const key = area + "|" + boss;
-
-  if (!(key in previousBossStates)) {
-    previousBossStates[key] = done;
-  } else if (!previousBossStates[key] && done) {
-
-    if (MAIN_BOSSES.includes(boss)) {
-      setTimeout(() => {
-        const bossElements = document.querySelectorAll(".boss");
-        bossElements.forEach(el => {
-          if (el.querySelector(".boss-name")?.innerText === boss) {
-            triggerVictory(el);
-          }
-        });
-      }, 100);
     }
-  }
+    previousBossStates[key] = done;
 
-  previousBossStates[key] = done;
+    console.log("K3 raw value:", timerVisibleFlag, "| isTrue:", isTrue(timerVisibleFlag));
 
-  globalTotalBosses++;
-  if (done) globalDoneBosses++;
 
-  if (!areas[area]) {
-    const rawCollapsed = r.c[5]?.v;
+    const rawCollapsed = r.c[5]?.v; // falls du manuelles Einklappen noch willst
 
-    areas[area] = {
-      total: 0,
-      done: 0,
-      bosses: [],
-      collapsed: [true, "TRUE", "WAHR", 1].includes(rawCollapsed)
-    };
-  }
+    globalTotalBosses++;
+    if (done) globalDoneBosses++;
 
-  areas[area].total++;
-  if (done) areas[area].done++;
+    if (!areas[area]) {
+      const rawCollapsed = r.c[5]?.v;
 
-  areas[area].bosses.push({ boss, done, deaths, pinned });
+      areas[area] = {
+        total: 0,
+        done: 0,
+        bosses: [],
+        collapsed: [true, "TRUE", "WAHR", 1].includes(rawCollapsed) // ← nur Checkbox entscheidet
+      };
+    }
 
-});
+    areas[area].total++;
+    if (done) areas[area].done++;
+
+    areas[area].bosses.push({ boss, done, deaths, pinned });
+  });
 
 
   // Header aktualisieren
@@ -666,8 +655,3 @@ setInterval(() => {
 </script>
 </body>
 </html>
-
-
-
-
-

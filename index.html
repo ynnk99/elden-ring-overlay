@@ -400,7 +400,21 @@ async function loadData() {
 
   const globalDeaths = Number(rows[1]?.c[9]?.v) || 0;
 
-  rows.slice(2).forEach(r => {
+  rows.forEach((r, index) => {
+
+  const sheetRow = index + 1; // echte Sheet-Zeile
+
+  // Bossliste beginnt erst ab Zeile 2
+  if (sheetRow < 2) return;
+
+  // Trennzeile ignorieren
+  if (sheetRow === 170) return;
+
+  // === BASE GAME ===
+  if (sheetRow <= 169 && !baseGameFlag) return;
+
+  // === DLC ===
+  if (sheetRow >= 171 && sheetRow <= 211 && !dlcFlag) return;
   const area = r.c[0]?.v?.trim();
   const boss = r.c[1]?.v?.trim();
   if (!area || !boss) return; // nur echte Bosszeilen
@@ -640,4 +654,5 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 

@@ -402,10 +402,18 @@ async function loadData() {
 
   rows.forEach((r, index) => {
 
-  const sheetRow = index + 1; // echte Sheet-Zeile
+  const sheetRow = index + 1;
 
-  // Bossliste beginnt erst ab Zeile 2
-  if (sheetRow < 3) return;
+  const area = r.c[0]?.v?.trim();
+  const boss = r.c[1]?.v?.trim();
+
+  // ✅ Header-Zeile komplett ignorieren
+  if (area === "Gebiet" || boss === "Boss") return;
+
+  // ✅ Leere oder ungültige Zeilen ignorieren
+  if (!area || !boss) return;
+
+  const sheetRow = index + 1; // echte Sheet-Zeile
 
   // Trennzeile ignorieren
   if (sheetRow === 170) return;
@@ -654,6 +662,7 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 
 

@@ -401,115 +401,94 @@ async function loadData() {
   let globalTotalBosses = 0;
   let globalDoneBosses = 0;
 
+ // ================================
+  // GESAMT TODE
   // ================================
-// GESAMT TODE (abhängig von P1 / P2)
-// ================================
+  const baseDeaths = Number(rows[1]?.c[9]?.v)   || 0; // J2  → index 1
+  const dlcDeaths  = Number(rows[170]?.c[9]?.v) || 0; // J171 → index 170
 
-  // J2 = Zeile 2 → index 1
-  const baseDeaths = Number(rows[1]?.c[9]?.v) || 0;
-  
-  // J170 = Zeile 170 → index 169
-  const dlcDeaths  = Number(rows[169]?.c[9]?.v) || 0;
-  
   let globalDeaths = 0;
-  
-  if (baseGameFlag && dlcFlag) {
-    globalDeaths = baseDeaths + dlcDeaths;
-  } else if (baseGameFlag) {
-    globalDeaths = baseDeaths;
-  } else if (dlcFlag) {
-    globalDeaths = dlcDeaths;
-  } else {
-    globalDeaths = 0;
-  }
+  if (baseGameFlag && dlcFlag) globalDeaths = baseDeaths + dlcDeaths;
+  else if (baseGameFlag)       globalDeaths = baseDeaths;
+  else if (dlcFlag)            globalDeaths = dlcDeaths;
+
+  // ================================
+  // BOSS ROWS
+  // Dynamic section detection by content:
+  //   Base game: all rows before "SHADOW OF THE ERDTREE DLC" separator
+  //   DLC:       all rows after the separator
+  // ================================
+
+  // Find separator index once before the loop
+  const separatorIndex = rows.findIndex(r => r.c[1]?.v?.trim() === "SHADOW OF THE ERDTREE DLC");
 
   rows.forEach((r, index) => {
+    const area = r.c[0]?.v?.trim();
+    const boss = r.c[1]?.v?.trim();
 
-  const sheetRow = index + 1; // echte Tabellen-Zeilennummer
+    // Header & leere Zeilen ignorieren
+    if (area === "Gebiet" && boss === "Boss") return;
+    if (!area || !boss) return;
 
-  // === BASE GAME FILTER (bis Zeile 168) ===
-  if (sheetRow <= 168 && !baseGameFlag) return;
+    // Separator row itself → never render
+    if (boss === "SHADOW OF THE ERDTREE DLC") return;
 
-  // === DLC FILTER (Zeile 170–211) ===
-  if (sheetRow >= 170 && sheetRow <= 211 && !dlcFlag) return;
+    // Section = position relative to separator
+    const isBaseGame = separatorIndex === -1 || index < separatorIndex;
+    const isDLC      = separatorIndex !== -1  && index > separatorIndex;
 
-  // Zeile 169 ist deine Trennzeile → ignorieren
-  if (sheetRow === 169) return;
+    if (isBaseGame && !baseGameFlag) return; // P1 = FALSE → skip base game rows
+    if (isDLC      && !dlcFlag)      return; // P2 = FALSE → skip DLC rows
 
-  const area = r.c[0]?.v?.trim();
-  const boss = r.c[1]?.v?.trim();
-  
-  // Header ignorieren
-  if (area === "Gebiet" && boss === "Boss") return;
-  
-  // Leere Zeilen ignorieren
-  if (!area || !boss) return;
-
-    // ✅ Done prüfen (TRUE/WAHR/1)
-    const rawDone = r.c[2]?.v;
-    const done = [true, "TRUE", "WAHR", 1].includes(rawDone);
-
-    // ✅ Angepinnt prüfen (Spalte E = 4)
+    // ================================
+    // BOSS-LOGIK
+    // ================================
+    const rawDone   = r.c[2]?.v;
+    const done      = [true, "TRUE", "WAHR", 1].includes(rawDone);
     const rawPinned = r.c[4]?.v;
-    const pinned = [true, "TRUE", "WAHR", 1].includes(rawPinned);
-
-    const deaths = Number(r.c[3]?.v) || 0;
-    const key = area + "|" + boss;
+    const pinned    = [true, "TRUE", "WAHR", 1].includes(rawPinned);
+    const deaths    = Number(r.c[3]?.v) || 0;
+    const key       = area + "|" + boss;
 
     if (!(key in previousBossStates)) {
       previousBossStates[key] = done;
-    } else if (!previousBossStates[key] && done) {
-
-      // Prüfen, ob Main Boss
-      if (MAIN_BOSSES.includes(boss)) {
-        // Warten bis DOM neu gerendert wurde
-        setTimeout(() => {
-          const bossElements = document.querySelectorAll(".boss");
-          bossElements.forEach(el => {
-            if (el.querySelector(".boss-name")?.innerText === boss) {
-              triggerVictory(el);
-            }
-          });
-        }, 100);
-      }
-
+    } else if (!previousBossStates[key] && done && MAIN_BOSSES.includes(boss)) {
+      setTimeout(() => {
+        document.querySelectorAll(".boss").forEach(el => {
+          if (el.querySelector(".boss-name")?.innerText === boss) triggerVictory(el);
+        });
+      }, 100);
     }
     previousBossStates[key] = done;
-
-    console.log("K3 raw value:", timerVisibleFlag, "| isTrue:", isTrue(timerVisibleFlag));
-
-
-    const rawCollapsed = r.c[5]?.v; // falls du manuelles Einklappen noch willst
 
     globalTotalBosses++;
     if (done) globalDoneBosses++;
 
     if (!areas[area]) {
       const rawCollapsed = r.c[5]?.v;
-
       areas[area] = {
         total: 0,
         done: 0,
         bosses: [],
-        collapsed: [true, "TRUE", "WAHR", 1].includes(rawCollapsed) // ← nur Checkbox entscheidet
+        collapsed: [true, "TRUE", "WAHR", 1].includes(rawCollapsed)
       };
     }
 
     areas[area].total++;
     if (done) areas[area].done++;
-
     areas[area].bosses.push({ boss, done, deaths, pinned });
   });
 
-
-  // Header aktualisieren
+  // ================================
+  // HEADER
+  // ================================
   const deathEl = document.getElementById("total-deaths");
   if (globalDeaths !== lastGlobalDeaths) {
     deathEl.classList.remove("death-animate");
     void deathEl.offsetWidth;
     deathEl.classList.add("death-animate");
   }
-  deathEl.innerText = `💀 Gesamt-Tode: ${globalDeaths}`;
+  deathEl.innerText = `💀 Tode: ${globalDeaths}`;
   lastGlobalDeaths = globalDeaths;
 
   const bossEl = document.getElementById("total-boss-progress");
@@ -522,37 +501,34 @@ async function loadData() {
   lastDoneBosses = globalDoneBosses;
   lastTotalBosses = globalTotalBosses;
 
-  // Render
-  // 1. Render Pinned Bosses
+  // ================================
+  // RENDER PINNED BOSSES
+  // ================================
   const pinnedArea = document.getElementById("pinned-area");
   pinnedArea.innerHTML = "";
   let hasPinned = false;
 
-  // Alle Bosse aus allen Gebieten sammeln, die gepinnt sind
   const allPinned = [];
   Object.values(areas).forEach(areaData => {
-    areaData.bosses.forEach(b => {
-      if (b.pinned) allPinned.push(b);
-    });
+    areaData.bosses.forEach(b => { if (b.pinned) allPinned.push(b); });
   });
 
   if (allPinned.length > 0) {
     hasPinned = true;
     allPinned.forEach(b => {
       const bossDiv = document.createElement("div");
-      const isMain = MAIN_BOSSES.includes(b.boss);
+      const normalize = str => str.trim().toLowerCase().replace(/\s+/g, " ");
+      const isMain = MAIN_BOSSES.map(normalize).includes(normalize(b.boss));
       bossDiv.className = "boss pinned-boss" + (b.done ? " done" : "") + (isMain ? " main-boss" : "");
-      
-      bossDiv.innerHTML = `
-        <span class="deaths">📌 ${b.deaths}</span>
-        <span class="boss-name">${b.boss}</span>
-      `;
+      bossDiv.innerHTML = `<span class="deaths">📌 ${b.deaths}</span><span class="boss-name">${b.boss}</span>`;
       pinnedArea.appendChild(bossDiv);
     });
   }
   pinnedArea.style.display = hasPinned ? "block" : "none";
 
-  // 2. Render Normal Areas
+  // ================================
+  // RENDER NORMAL AREAS
+  // ================================
   const content = document.getElementById("content");
   content.innerHTML = "";
 
@@ -561,9 +537,7 @@ async function loadData() {
     areaDiv.className = "area";
 
     areaDiv.innerHTML = `
-      <div class="area-title">
-        ${data.collapsed ? "▶" : "▼"} ${area}
-      </div>
+      <div class="area-title">${data.collapsed ? "▶" : "▼"} ${area}</div>
       <div class="area-progress">${data.done} / ${data.total}</div>
     `;
 
@@ -571,16 +545,8 @@ async function loadData() {
       data.bosses.forEach(b => {
         const bossDiv = document.createElement("div");
         const isMain = MAIN_BOSSES.includes(b.boss);
-
-        // Hier lassen wir die normale Darstellung, aber ohne die pinned-boss Klasse
-        let classes = "boss" + (b.done ? " done" : "") + (isMain ? " main-boss" : "");
-        bossDiv.className = classes;
-
-        bossDiv.innerHTML = `
-          <span class="deaths">† ${b.deaths}</span>
-          <span class="boss-name">${b.boss}</span>
-        `;
-
+        bossDiv.className = "boss" + (b.done ? " done" : "") + (isMain ? " main-boss" : "");
+        bossDiv.innerHTML = `<span class="deaths">† ${b.deaths}</span><span class="boss-name">${b.boss}</span>`;
         areaDiv.appendChild(bossDiv);
       });
     }
@@ -680,5 +646,6 @@ setInterval(() => {
 </script>
 </body>
 </html>
+
 
 

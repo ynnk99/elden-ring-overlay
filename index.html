@@ -37,7 +37,6 @@ html, body {
   backdrop-filter: blur(4px);
 }
 
-
 .wrapper::before {
   content: "";
   position: absolute;
@@ -50,7 +49,6 @@ html, body {
     inset 0 0 60px rgba(0, 0, 0, 0.7);
 }
 
-/* Goldrahmen als Overlay */
 .wrapper::after {
   content: "";
   position: absolute;
@@ -61,13 +59,37 @@ html, body {
   box-sizing: border-box;
 }
 
+/* ============================= */
+/* MINIMAL OVERLAY MODE          */
+/* ============================= */
+
+.wrapper.simple-mode {
+  width: 300px;
+  height: auto;
+  padding: 10px 12px;   /* vorher 20px → deutlich kompakter */
+}
+
+.wrapper.simple-mode .header-stats {
+  flex-direction: column;
+  gap: 6px;             /* Abstand zwischen Tode und Bosse */
+  font-size: 20px;
+  margin-bottom: 3px;     /* entfernt zusätzlichen Abstand */
+}
+
+.wrapper.simple-mode #boss-timer {
+  font-size: 20px !important;
+  margin-bottom: 0 !important;
+  margin-top: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .scroll {
   height: 480px;
   overflow: hidden;
 }
 
-
-/* Scrollbar unsichtbar */
 .scroll::-webkit-scrollbar {
   width: 0;
 }
@@ -100,7 +122,7 @@ html, body {
 
 .boss {
   display: flex;
-  justify-content: flex-start; 
+  justify-content: flex-start;
   align-items: center;
   padding: 2px 0;
 }
@@ -112,12 +134,12 @@ html, body {
 }
 
 .boss.done .boss-name {
-  opacity: 0.35;          /* Name ausgegraut */
+  opacity: 0.35;
 }
 
 .deaths {
   color: #c9a44a;
-  min-width: 45px; 
+  min-width: 45px;
   text-align: left;
   margin-right: 10px;
 }
@@ -127,7 +149,6 @@ html, body {
   font-weight: bold;
 }
 
-/* Angepinnte Bosse */
 .pinned-container {
   border-bottom: 2px solid #7d6a3d;
   margin-bottom: 15px;
@@ -139,10 +160,8 @@ html, body {
   padding: 4px 8px;
   border-radius: 4px;
   margin-bottom: 4px;
-
   animation: pinnedPulse 2.5s ease-in-out infinite;
 }
-
 
 .header-stats {
   font-size: 18px;
@@ -180,8 +199,6 @@ html, body {
   animation: bossPulse 0.8s ease-out;
 }
 
-/* ================= VICTORY OVERLAY ================= */
-
 .victory-overlay {
   position: absolute;
   width: 420px;
@@ -194,7 +211,7 @@ html, body {
   align-items: center;
   pointer-events: none;
   opacity: 0;
-  z-index: 100; /* hoch genug, um über allem zu liegen */
+  z-index: 100;
 }
 
 .victory-text {
@@ -207,7 +224,6 @@ html, body {
   text-align: center;
 }
 
-/* Animationen */
 .victory-show {
   animation: overlayFade 3s ease forwards;
 }
@@ -230,8 +246,6 @@ html, body {
   100% { opacity: 0; transform: scale(0.9); }
 }
 
-/* ================= PARTICLES ================= */
-
 .particle {
   position: absolute;
   width: 6px;
@@ -247,39 +261,30 @@ html, body {
   0% { transform: translate(0,0) scale(1); opacity: 1; }
   100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
 }
-
-
 </style>
 </head>
 
 <body>
 <div class="wrapper">
-    <div class="header-stats">
-        <span id="total-deaths">💀 Gesamt-Tode: 0</span>
-        <span id="total-boss-progress">🏆 Bosse: 0 / 0</span>
-    </div>
+  <div class="header-stats">
+    <span id="total-deaths">💀 Tode: 0</span>
+    <span id="total-boss-progress">🏆 Bosse: 0 / 0</span>
+  </div>
 
-    <div id="boss-timer" style="
-      font-size:18px;
-      margin-bottom:12px;
-      color:#c9a44a;
-      display:none;
-    ">
+  <div id="boss-timer" style="font-size:18px; margin-bottom:12px; color:#c9a44a; display:none;">
     ⏳ Aktueller Boss: 00:00:00
   </div>
 
-    <div id="pinned-area" class="pinned-container" style="display: none;"></div>
+  <div id="pinned-area" class="pinned-container" style="display: none;"></div>
 
   <div class="scroll" id="content"></div>
-  <div class="victory-overlay" id="victoryOverlay">
-  <div class="victory-text" id="victoryText">BOSS ERLEDIGT</div>
-  </div>
 
+  <div class="victory-overlay" id="victoryOverlay">
+    <div class="victory-text" id="victoryText">BOSS ERLEDIGT</div>
+  </div>
 </div>
 
 <script>
-
-/* ===== VICTORY CONFIG ===== */
 
 const VICTORY_DELAY = 2000;
 const PARTICLE_COUNT = 50;
@@ -309,6 +314,14 @@ const MAIN_BOSSES = [
   "Godfrey, Erster Eldenfürst (Hoarah Loux)",
   "Sir Gideon Ofnir, der Allwissende",
   "Radagon von der Goldenen Ordnung / Eldenbestie",
+  "Rellana Twin Moon Knight",
+  "Divine Beast Dancing Lion",
+  "Messmer the Impaler + Base Serpent Messmer",
+  "Bayle the Dread",
+  "Midra Lord of Frenzied Flame",
+  "Commander Gaius",
+  "Romina, Saint of the Bud",
+  "Promised Consort + Radahn Consort of Miquella",
 ];
 
 const SPREADSHEET_ID = "1_fEjHB_k3NyKymN3FjkoQAOEf2DXgk3NZcTLciw9LAg";
@@ -318,7 +331,7 @@ const URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sh
 
 let timerRunning = false;
 let timerStart = 0;
-let elapsedAtStop = 0;       // ✅ FIX 3: store elapsed time when paused
+let elapsedAtStop = 0;
 let currentBossName = "Aktueller Boss";
 let timerVisible = false;
 let lastResetState = false;
@@ -327,10 +340,8 @@ function updateTimerDisplay() {
   const timerElement = document.getElementById("boss-timer");
   if (!timerElement) return;
 
-  // ✅ FIX 2: This is the ONLY place that touches the DOM
   timerElement.style.display = timerVisible ? "block" : "none";
 
-  // ✅ FIX 3: Use frozen elapsed time when stopped, live time when running
   const diff = timerRunning
     ? Math.floor((Date.now() - timerStart) / 1000)
     : Math.floor(elapsedAtStop / 1000);
@@ -345,6 +356,9 @@ function updateTimerDisplay() {
 setInterval(updateTimerDisplay, 1000);
 
 async function loadData() {
+  const pinnedArea = document.getElementById("pinned-area");
+  const content = document.getElementById("content");
+  const wrapper = document.querySelector(".wrapper");
   const res  = await fetch(URL + "&t=" + Date.now());
   const text = await res.text();
   const json = JSON.parse(text.substring(47).slice(0, -2));
@@ -352,56 +366,48 @@ async function loadData() {
 
   const isTrue = v => [true, "TRUE", "WAHR", 1].includes(v);
 
-  // K4 und K5 sitzen in Zeile 4 und 5 → Index 3 und 4
-  const baseGameFlag = isTrue(rows[3]?.c[10]?.v); // K4
-  const dlcFlag      = isTrue(rows[4]?.c[10]?.v); // K5
+  const baseGameFlag = isTrue(rows[0]?.c[15]?.v); // P1
+  const dlcFlag      = isTrue(rows[1]?.c[15]?.v); // P2
 
   const timerStartFlag   = rows[0]?.c[10]?.v;
   const timerResetFlag   = rows[1]?.c[10]?.v;
-  const timerVisibleFlag = rows[2]?.c[10]?.v;
+  const timerVisibleFlag = rows[0]?.c[12]?.v;
 
   const startChecked   = isTrue(timerStartFlag);
   const resetChecked   = isTrue(timerResetFlag);
   const visibleChecked = isTrue(timerVisibleFlag);
 
+  const simpleViewFlag = rows[1]?.c[12]?.v; // M2
+  const simpleView = isTrue(simpleViewFlag);
 
   /* ===== RESET ===== */
   if (resetChecked && !lastResetState) {
-    // Only reset on the RISING EDGE (false → true), not every poll cycle
     timerStart    = Date.now();
     elapsedAtStop = 0;
-    if (timerRunning) {
-      timerStart = Date.now(); // keep running from 0
-    }
+    if (timerRunning) timerStart = Date.now();
   }
   lastResetState = resetChecked;
 
   /* ===== START / STOP ===== */
-  // ✅ FIX 1+3: K1 is solely responsible for running state
   if (startChecked) {
     if (!timerRunning) {
-      timerStart    = Date.now() - elapsedAtStop; // resume from where it stopped
-      timerRunning  = true;
+      timerStart   = Date.now() - elapsedAtStop;
+      timerRunning = true;
     }
   } else {
     if (timerRunning) {
-      elapsedAtStop = Date.now() - timerStart;    // freeze elapsed time on stop
+      elapsedAtStop = Date.now() - timerStart;
       timerRunning  = false;
     }
   }
 
-  /* ===== SICHTBARKEIT ===== */
-  // ✅ FIX 4: Simple direct assignment, no unnecessary guard
   timerVisible = visibleChecked;
-
-  // ✅ FIX 2: No DOM updates here — updateTimerDisplay() handles all rendering
-
 
   const areas = {};
   let globalTotalBosses = 0;
   let globalDoneBosses = 0;
 
- // ================================
+  // ================================
   // GESAMT TODE
   // ================================
   const baseDeaths = Number(rows[1]?.c[9]?.v)   || 0; // J2  → index 1
@@ -502,9 +508,21 @@ async function loadData() {
   lastTotalBosses = globalTotalBosses;
 
   // ================================
+  // SIMPLE VIEW (nur Header anzeigen)
+  // ================================
+  if (simpleView) {
+    pinnedArea.style.display = "none";
+    content.style.display = "none";
+    wrapper.classList.add("simple-mode");
+    return;
+  } else {
+    content.style.display = "block";
+    wrapper.classList.remove("simple-mode");
+  }
+
+  // ================================
   // RENDER PINNED BOSSES
   // ================================
-  const pinnedArea = document.getElementById("pinned-area");
   pinnedArea.innerHTML = "";
   let hasPinned = false;
 
@@ -529,7 +547,6 @@ async function loadData() {
   // ================================
   // RENDER NORMAL AREAS
   // ================================
-  const content = document.getElementById("content");
   content.innerHTML = "";
 
   Object.entries(areas).forEach(([area, data]) => {
@@ -557,79 +574,57 @@ async function loadData() {
 /* ================= VICTORY SYSTEM ================= */
 
 function triggerVictory(el) {
-
   autoScrollPaused = true;
-
   const container = document.getElementById("content");
-
-  const topPos = el.offsetTop - container.clientHeight / 2;
-
-  container.scrollTo({
-    top: topPos,
-    behavior: "smooth"
-  });
+  container.scrollTo({ top: el.offsetTop - container.clientHeight / 2, behavior: "smooth" });
 
   setTimeout(() => {
-
     showOverlay();
     spawnParticles();
-
     el.style.transition = "all .4s ease";
     el.style.transform = "scale(1.15)";
     el.style.boxShadow = "0 0 25px #c9a44a";
-
     setTimeout(() => {
       el.style.transform = "scale(1)";
       el.style.boxShadow = "none";
       autoScrollPaused = false;
     }, 2500);
-
   }, VICTORY_DELAY);
 }
 
-function showOverlay(){
-  const overlay=document.getElementById("victoryOverlay");
-  const text=document.getElementById("victoryText");
-
+function showOverlay() {
+  const overlay = document.getElementById("victoryOverlay");
+  const text    = document.getElementById("victoryText");
   overlay.classList.add("victory-show");
   text.classList.add("victory-text-show");
-
-  setTimeout(()=>{
+  setTimeout(() => {
     overlay.classList.remove("victory-show");
     text.classList.remove("victory-text-show");
-  },3000);
+  }, 3000);
 }
 
-function spawnParticles(){
-  const wrapper=document.querySelector(".wrapper");
-
-  for(let i=0;i<PARTICLE_COUNT;i++){
-    const p=document.createElement("div");
-    p.className="particle";
-
-    const angle=Math.random()*2*Math.PI;
-    const distance=120+Math.random()*80;
-
-    const x=Math.cos(angle)*distance+"px";
-    const y=Math.sin(angle)*distance+"px";
-
-    p.style.left="50%";
-    p.style.top="50%";
-    p.style.setProperty("--x",x);
-    p.style.setProperty("--y",y);
-
+function spawnParticles() {
+  const wrapper = document.querySelector(".wrapper");
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const p = document.createElement("div");
+    p.className = "particle";
+    const angle    = Math.random() * 2 * Math.PI;
+    const distance = 120 + Math.random() * 80;
+    p.style.left = "50%";
+    p.style.top  = "50%";
+    p.style.setProperty("--x", Math.cos(angle) * distance + "px");
+    p.style.setProperty("--y", Math.sin(angle) * distance + "px");
     wrapper.appendChild(p);
-    setTimeout(()=>p.remove(),1000);
+    setTimeout(() => p.remove(), 1000);
   }
 }
-
 
 loadData();
 setInterval(loadData, 5000);
 
 /* ================= SMOOTH 60FPS SCROLL WITH END PAUSES ================= */
 
-const SCROLL_SPEED   = 0.3;   // pixels per frame (~36px/s at 60fps) — adjust to taste
+const SCROLL_SPEED   = 0.6;   // pixels per frame (~36px/s at 60fps) — adjust to taste
 const PAUSE_DURATION = 2500;  // ms to pause at each end
 
 let scrollPos     = 0;
@@ -692,13 +687,6 @@ function smoothScroll(timestamp) {
 
 requestAnimationFrame(smoothScroll);
 
-
 </script>
 </body>
 </html>
-
-
-
-
-
-

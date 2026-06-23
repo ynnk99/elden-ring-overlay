@@ -12,16 +12,21 @@ html, body {
   font-family: Georgia, serif;
   color: #e6dcc8;
   overflow: hidden;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
 }
 
 .wrapper {
   position: relative;
   width: 420px;
-  height: 560px;
-  padding: 18px;
+  height: auto;
+  max-height: 560px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 20px;
 
   background: linear-gradient(
     rgba(0, 0, 0, 0.75),
@@ -60,7 +65,9 @@ html, body {
 }
 
 .wrapper.simple-mode {
-  width: 300px;
+  width: max-content;
+  min-width: 150px;
+  max-width: 280px;
   height: auto;
   padding: 10px 12px;
 }
@@ -82,8 +89,9 @@ html, body {
 }
 
 .scroll {
-  height: 480px;
   overflow: hidden;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .scroll::-webkit-scrollbar {
@@ -93,7 +101,7 @@ html, body {
 #content::after {
 content: "";
 display: block;
-height: 28px;
+height: 14px;
 }
 
 .area {
@@ -155,6 +163,7 @@ height: 28px;
   border-bottom: 2px solid #7d6a3d;
   margin-bottom: 15px;
   padding-bottom: 10px;
+  flex-shrink: 0;
 }
 
 .pinned-boss {
@@ -165,13 +174,131 @@ height: 28px;
   animation: pinnedPulse 2.5s ease-in-out infinite;
 }
 
+.pinned-boss .boss-name {
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+  text-overflow: clip;
+}
+
+.pinned-boss .boss-name .ticker-inner {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+}
+
 .header-stats {
   font-size: 18px;
   margin-bottom: 10px;
   color: #c9a44a;
   display: flex;
   gap: 20px;
+  flex-shrink: 0;
 }
+
+#boss-timer {
+  flex-shrink: 0;
+}
+
+/* ── TOP-DEATHS MODE ── */
+#top-deaths-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.top-deaths-title {
+  font-size: 16px;
+  color: #c9a44a;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.top-deaths-title::after {
+  content: "";
+  display: block;
+  width: 80%;
+  margin: 4px auto 0;
+  height: 1px;
+  background: #7d6a3d;
+}
+
+.top-deaths-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.top-deaths-list li {
+  display: flex;
+  align-items: center;
+  padding: 5px 4px;
+  border-bottom: 1px solid rgba(125, 106, 61, 0.3);
+}
+
+.top-deaths-list li:last-child {
+  border-bottom: none;
+}
+
+.top-rank {
+  font-size: 13px;
+  color: #7d6a3d;
+  min-width: 26px;
+  flex-shrink: 0;
+}
+
+.top-rank-1 { color: #ffd700; font-weight: bold; font-size: 15px; }
+.top-rank-2 { color: #c0c0c0; font-weight: bold; }
+.top-rank-3 { color: #cd7f32; font-weight: bold; }
+
+.top-deaths-count {
+  color: #c9a44a;
+  min-width: 40px;
+  text-align: right;
+  margin-right: 10px;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.top-boss-name {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
+}
+
+.top-boss-name.is-main {
+  color: #e3b873;
+  font-weight: bold;
+}
+
+.top-boss-name.is-done {
+  opacity: 0.5;
+}
+
+.top-deaths-bar-wrap {
+  width: 100%;
+  height: 3px;
+  background: rgba(125,106,61,0.25);
+  border-radius: 2px;
+  margin-top: 3px;
+}
+
+.top-deaths-bar {
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(to right, #7d6a3d, #c9a44a);
+  transition: width 0.6s ease;
+}
+/* ────────────────── */
 
 @keyframes deathPulse {
   0%   { transform: scale(1); }
@@ -203,11 +330,11 @@ height: 28px;
 
 .victory-overlay {
   position: absolute;
-  width: 420px;
-  height: 560px;
-  background: radial-gradient(circle, rgba(201,164,74,0.3), rgba(0,0,0,0.9));
+  width: 100%;
+  height: 100%;
   top: 0;
   left: 0;
+  background: radial-gradient(circle, rgba(201,164,74,0.3), rgba(0,0,0,0.9));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -263,6 +390,32 @@ height: 28px;
   0% { transform: translate(0,0) scale(1); opacity: 1; }
   100% { transform: translate(var(--x), var(--y)) scale(0.2); opacity: 0; }
 }
+
+.wrapper.simple-mode .pinned-container {
+  border-bottom: none;
+  margin-top: 8px;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.wrapper.simple-mode .pinned-boss {
+  font-size: 16px;
+  padding: 3px 6px;
+  margin-bottom: 2px;
+  animation: none;
+}
+
+.wrapper.simple-mode .pinned-boss .deaths {
+  min-width: 30px;
+  font-size: 18px;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.wrapper.simple-mode .pinned-boss .boss-name {
+  font-size: 16px;
+}
+
 </style>
 </head>
 
@@ -281,6 +434,12 @@ height: 28px;
 
   <div class="scroll" id="content"></div>
 
+  <!-- TOP-DEATHS PANEL (Y2 = TRUE) -->
+  <div id="top-deaths-container" style="display:none;">
+    <div class="top-deaths-title">💀 TOP 10 — MEISTE TODE</div>
+    <ul class="top-deaths-list" id="top-deaths-list"></ul>
+  </div>
+
   <div class="victory-overlay" id="victoryOverlay">
     <div class="victory-text" id="victoryText">BOSS ERLEDIGT</div>
   </div>
@@ -293,6 +452,7 @@ const PARTICLE_COUNT = 50;
 
 let previousBossStates = {};
 let autoScrollPaused = false;
+let topDeathsModeActive = false;
 
 let lastGlobalDeaths = 0;
 let lastDoneBosses = 0;
@@ -329,12 +489,12 @@ const MAIN_BOSSES = [
 const SPREADSHEET_ID = "1_fEjHB_k3NyKymN3FjkoQAOEf2DXgk3NZcTLciw9LAg";
 const URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?sheet=OBS_OVERLAY&tqx=out:json`;
 
-/* ================= TIMER ENGINE (Sheet-basiert) ================= */
+/* ================= TIMER ENGINE ================= */
 
-let currentElapsed = 0;   // ms – wird von loadData() aktualisiert
-let timerStartTs   = 0;   // V1 aus Sheet (0 = gestoppt)
-let timerVisible   = false;
-let currentBossName = "Aktueller Boss";
+let timerStartTs    = 0;
+let currentElapsed  = 0;
+let timerVisible    = false;
+let currentBossName = "Aktueller Boss"; // M3: wird überschrieben wenn befüllt
 
 function updateTimerDisplay() {
   const timerElement = document.getElementById("boss-timer");
@@ -342,7 +502,6 @@ function updateTimerDisplay() {
 
   timerElement.style.display = timerVisible ? "block" : "none";
 
-  // Wenn Timer läuft (V1 > 0): live hochzählen ab dem Sheet-Timestamp
   const diff = timerStartTs > 0
     ? Math.floor((currentElapsed + (Date.now() - timerStartTs)) / 1000)
     : Math.floor(currentElapsed / 1000);
@@ -356,10 +515,55 @@ function updateTimerDisplay() {
 
 setInterval(updateTimerDisplay, 1000);
 
+/* ================= TOP-DEATHS RENDER ================= */
+
+function renderTopDeaths(allBosses) {
+  const container = document.getElementById("top-deaths-container");
+  const list      = document.getElementById("top-deaths-list");
+
+  const sorted = allBosses
+    .filter(b => b.deaths > 0)
+    .sort((a, b) => b.deaths - a.deaths)
+    .slice(0, 10);
+
+  const maxDeaths = sorted.length > 0 ? sorted[0].deaths : 1;
+
+  const normalize = str => str.trim().toLowerCase().replace(/\s+/g, " ");
+
+  list.innerHTML = "";
+  sorted.forEach((b, i) => {
+    const rank     = i + 1;
+    const isMain   = MAIN_BOSSES.map(normalize).includes(normalize(b.boss));
+    const rankClass = rank === 1 ? "top-rank-1" : rank === 2 ? "top-rank-2" : rank === 3 ? "top-rank-3" : "";
+    const barPct   = Math.round((b.deaths / maxDeaths) * 100);
+
+    const li = document.createElement("li");
+    li.innerHTML = `
+      <span class="top-rank ${rankClass}">#${rank}</span>
+      <div style="flex:1; min-width:0;">
+        <div style="display:flex; align-items:center;">
+          <span class="top-deaths-count">† ${b.deaths}</span>
+          <span class="top-boss-name${isMain ? " is-main" : ""}${b.done ? " is-done" : ""}">${b.boss}</span>
+        </div>
+        <div class="top-deaths-bar-wrap">
+          <div class="top-deaths-bar" style="width:${barPct}%"></div>
+        </div>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+
+  container.style.display = "flex";
+}
+
+/* ================= DATA LOAD ================= */
+
 async function loadData() {
-  const pinnedArea = document.getElementById("pinned-area");
-  const content = document.getElementById("content");
-  const wrapper = document.querySelector(".wrapper");
+  const pinnedArea   = document.getElementById("pinned-area");
+  const content      = document.getElementById("content");
+  const wrapper      = document.querySelector(".wrapper");
+  const topContainer = document.getElementById("top-deaths-container");
+
   const res  = await fetch(URL + "&t=" + Date.now());
   const text = await res.text();
   const json = JSON.parse(text.substring(47).slice(0, -2));
@@ -367,39 +571,61 @@ async function loadData() {
 
   const isTrue = v => [true, "TRUE", "WAHR", 1].includes(v);
 
-  const baseGameFlag = isTrue(rows[0]?.c[16]?.v); // P1
-  const dlcFlag      = isTrue(rows[1]?.c[16]?.v); // P2
+  // ── ALLE FIXEN SHEET-ZELLREFERENZEN ─────────────────────────────────
+  const CELLS = {
+    hideOverlay:    rows[0]?.c[24]?.v,
+    topDeathsMode:  rows[1]?.c[24]?.v,
+    baseGameFlag:   rows[0]?.c[16]?.v,
+    dlcFlag:        rows[1]?.c[16]?.v,
+    timerVisible:   rows[0]?.c[14]?.v,
+    simpleView:     rows[1]?.c[14]?.v,
+    onlyOpen:       rows[0]?.c[19]?.v,
+    onlyDone:       rows[1]?.c[19]?.v,
+    timerStartTs:   rows[0]?.c[23]?.v,
+    currentElapsed: rows[2]?.c[23]?.v,
+    timerLabel:     rows[2]?.c[12]?.v,
+    baseDeaths:     rows[1]?.c[10]?.v, 
+    dlcDeaths:      rows[168]?.c[10]?.v,
+  };
+  // ────────────────────────────────────────────────────────────────────
 
-  // TIMER – aus Sheet V1 / V3
-  // V1 = rows[0].c[21] → Start-Timestamp (0 wenn gestoppt)
-  // V2 = rows[1].c[21] → akkumulierte ms (nur für Sheet-Anzeige, nicht für Overlay)
-  // V3 = rows[2].c[21] → reiner Offset vergangener Runs (Basis für Overlay)
-  timerStartTs   = Number(rows[0]?.c[22]?.v) || 0; // V1
-  currentElapsed = Number(rows[2]?.c[22]?.v) || 0; // V3 ← geändert von rows[1] auf rows[2]
-  timerVisible   = isTrue(rows[0]?.c[13]?.v);       // M1
+  const hideOverlay = isTrue(CELLS.hideOverlay);
+  document.querySelector(".wrapper").style.visibility = hideOverlay ? "hidden" : "visible";
+  if (hideOverlay) return;
 
-  const simpleViewFlag = rows[1]?.c[13]?.v; // M2
-  const simpleView = isTrue(simpleViewFlag);
+  topDeathsModeActive = isTrue(CELLS.topDeathsMode);
 
-  const areas = {};
-  let globalTotalBosses = 0;
-  let globalDoneBosses = 0;
+  const baseGameFlag = isTrue(CELLS.baseGameFlag);
+  const dlcFlag      = isTrue(CELLS.dlcFlag);
 
-  // ================================
-  // GESAMT TODE
-  // ================================
-  const baseDeaths = Number(rows[1]?.c[10]?.v)   || 0;
-  const dlcDeaths  = Number(rows[168]?.c[10]?.v) || 0;
+  timerStartTs   = Number(CELLS.timerStartTs)   || 0;
+  currentElapsed = Number(CELLS.currentElapsed) || 0;
+  timerVisible   = isTrue(CELLS.timerVisible);
+
+  // M3: Custom Label – wenn leer, Standard "Aktueller Boss:" verwenden
+  const rawLabel = CELLS.timerLabel ? String(CELLS.timerLabel).trim() : "";
+  currentBossName = rawLabel || "Aktueller Boss";
+
+  const simpleView = isTrue(CELLS.simpleView);
+  const onlyOpen   = isTrue(CELLS.onlyOpen);
+  const onlyDone   = isTrue(CELLS.onlyDone);
+
+  const baseDeaths = Number(CELLS.baseDeaths) || 0;
+  const dlcDeaths  = Number(CELLS.dlcDeaths)  || 0;
 
   let globalDeaths = 0;
   if (baseGameFlag && dlcFlag) globalDeaths = baseDeaths + dlcDeaths;
   else if (baseGameFlag)       globalDeaths = baseDeaths;
   else if (dlcFlag)            globalDeaths = dlcDeaths;
 
-  // ================================
-  // BOSS ROWS
-  // ================================
+  const areas = {};
+  let globalTotalBosses = 0;
+  let globalDoneBosses = 0;
+
   const separatorIndex = rows.findIndex(r => r.c[1]?.v?.trim() === "SHADOW OF THE ERDTREE DLC");
+
+  // Alle Bosse für Top-Deaths sammeln
+  const allBossesFlat = [];
 
   rows.forEach((r, index) => {
     const area = r.c[0]?.v?.trim();
@@ -435,6 +661,9 @@ async function loadData() {
 
     globalTotalBosses++;
     if (done) globalDoneBosses++;
+
+    // Für Top-Deaths
+    allBossesFlat.push({ boss, done, deaths, pinned });
 
     if (!areas[area]) {
       const rawCollapsed = r.c[6]?.v;
@@ -474,16 +703,37 @@ async function loadData() {
   lastTotalBosses = globalTotalBosses;
 
   // ================================
+  // TOP-DEATHS MODE (Y2 = TRUE)
+  // ================================
+  if (topDeathsModeActive) {
+    content.style.display = "none";
+    pinnedArea.style.display = "none";
+    wrapper.classList.remove("simple-mode");
+    renderTopDeaths(allBossesFlat);
+    return;
+  }
+
+  // Normalmodus: Top-Deaths-Panel verstecken
+  topContainer.style.display = "none";
+
+  // ================================
   // SIMPLE VIEW
   // ================================
   if (simpleView) {
-    pinnedArea.style.display = "none";
     content.style.display = "none";
     wrapper.classList.add("simple-mode");
-    return;
   } else {
     content.style.display = "block";
     wrapper.classList.remove("simple-mode");
+  }
+
+  // ================================
+  // BOSS-FILTER (S1 / S2)
+  // ================================
+  function bossPassesFilter(b) {
+    if (onlyOpen && !onlyDone) return !b.done;
+    if (onlyDone && !onlyOpen) return b.done;
+    return true;
   }
 
   // ================================
@@ -494,7 +744,9 @@ async function loadData() {
 
   const allPinned = [];
   Object.values(areas).forEach(areaData => {
-    areaData.bosses.forEach(b => { if (b.pinned) allPinned.push(b); });
+    areaData.bosses.forEach(b => {
+      if (b.pinned && bossPassesFilter(b)) allPinned.push(b);
+    });
   });
 
   if (allPinned.length > 0) {
@@ -504,7 +756,7 @@ async function loadData() {
       const normalize = str => str.trim().toLowerCase().replace(/\s+/g, " ");
       const isMain = MAIN_BOSSES.map(normalize).includes(normalize(b.boss));
       bossDiv.className = "boss pinned-boss" + (b.done ? " done" : "") + (isMain ? " main-boss" : "");
-      bossDiv.innerHTML = `<span class="deaths">📌 ${b.deaths}</span><span class="boss-name">${b.boss}</span>`;
+      bossDiv.innerHTML = `<span class="deaths">💀 ${b.deaths}</span><span class="boss-name"><span class="ticker-inner">${b.boss}</span></span>`;
       pinnedArea.appendChild(bossDiv);
     });
   }
@@ -516,6 +768,9 @@ async function loadData() {
   content.innerHTML = "";
 
   Object.entries(areas).forEach(([area, data]) => {
+    const visibleBosses = data.bosses.filter(bossPassesFilter);
+    if (visibleBosses.length === 0) return;
+
     const areaDiv = document.createElement("div");
     areaDiv.className = "area";
 
@@ -525,7 +780,7 @@ async function loadData() {
     `;
 
     if (!data.collapsed) {
-      data.bosses.forEach(b => {
+      visibleBosses.forEach(b => {
         const bossDiv = document.createElement("div");
         const isMain = MAIN_BOSSES.includes(b.boss);
         bossDiv.className = "boss" + (b.done ? " done" : "") + (isMain ? " main-boss" : "");
@@ -536,6 +791,51 @@ async function loadData() {
     content.appendChild(areaDiv);
   });
 }
+
+/* ================= TICKER ENGINE ================= */
+
+let tickerState = {};
+
+function runTickers() {
+  document.querySelectorAll('.pinned-boss .boss-name').forEach(containerEl => {
+    const inner = containerEl.querySelector('.ticker-inner');
+    if (!inner) return;
+
+    const key = inner.textContent.trim();
+
+    if (!tickerState[key]) {
+      tickerState[key] = { pos: 0, dir: 1, pause: 80 };
+    }
+    const s = tickerState[key];
+
+    const innerW     = inner.getBoundingClientRect().width;
+    const containerW = containerEl.getBoundingClientRect().width;
+    const maxScroll  = innerW - containerW;
+
+    if (maxScroll <= 0) {
+      inner.style.transform = "translateX(0)";
+      return;
+    }
+
+    if (s.pause > 0) { s.pause--; return; }
+
+    s.pos += s.dir * 0.5;
+
+    if (s.pos >= maxScroll) {
+      s.pos = maxScroll;
+      s.dir = -1;
+      s.pause = 80;
+    } else if (s.pos <= 0) {
+      s.pos = 0;
+      s.dir = 1;
+      s.pause = 80;
+    }
+
+    inner.style.transform = `translateX(${-s.pos}px)`;
+  });
+}
+
+setInterval(runTickers, 16);
 
 /* ================= VICTORY SYSTEM ================= */
 
@@ -586,7 +886,7 @@ function spawnParticles() {
 }
 
 loadData();
-setInterval(loadData, 5000);
+setInterval(loadData, 3000);
 
 /* ================= SMOOTH 60FPS SCROLL WITH END PAUSES ================= */
 
@@ -602,7 +902,7 @@ let lastTimestamp = null;
 function smoothScroll(timestamp) {
   requestAnimationFrame(smoothScroll);
 
-  if (autoScrollPaused) {
+  if (autoScrollPaused || topDeathsModeActive) {
     lastTimestamp = null;
     return;
   }

@@ -634,7 +634,9 @@ async function loadData() {
     const area = r.c[0]?.v?.trim();
     const boss = r.c[1]?.v?.trim();
 
-    if (area === "Gebiet" && boss === "Boss") return;
+    const areaLower = area?.toLowerCase();
+    const bossLower = boss?.toLowerCase();
+    if ((areaLower === "gebiet" || areaLower === "area") && bossLower === "boss") return;
     if (!area || !boss) return;
     if (boss === "SHADOW OF THE ERDTREE DLC") return;
 
